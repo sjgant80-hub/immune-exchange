@@ -1,0 +1,15 @@
+{
+  "name": "immune-exchange",
+  "version": "1.0.0",
+  "description": "A centerless, signed antibody bus: a zero-day caught by one gate immunises every subscriber — after each re-runs it on its own gate. No false immunity, no central trust.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "start": "node run.mjs",
+    "test": "node --test test/*.test.mjs",
+    "witness": "node witness-all.mjs",
+    "redteam": "node attack-kit/redteam.mjs",
+    "redteam:check": "node attack-kit/redteam.mjs --check"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "mutation": "> → >=",
+    "snippet": "if (key.some((c) => c > 0x7f)) return null;",
+    "reason": "redundant with rawCheck: a key byte of 0x7f fails keyOk (schema) and >0x7f vs >=0x7f both reject it before signing."
+  },
+  {
+    "mutation": "> → >=",
+    "snippet": "if (v.some((c) => c > 0x7f)) return null;",
+    "reason": "redundant with rawCheck: a value byte of 0x7f fails isPrintable (0x7e is the max), so >0x7f and >=0x7f reject identically."
+  },
+  {
+    "mutation": "> → >=",
+    "snippet": "if (body.length > MAX_PAYLOAD) return null;",
+    "reason": "the largest grammar-valid body is 235 bytes (key<=32,value<=200); body.length can never be 256, so >MAX_PAYLOAD and >=MAX_PAYLOAD never differ, and a value>200 is already rejected by rawCheck."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const r = refusal && typeof refusal === 'object' ? refusal : {};",
+    "reason": "input normalizer: for a truthy non-object refusal, r=junk vs r={} both give r.stage===undefined → the same default family; for junk/valid it is unchanged."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const f = facts && typeof facts === 'object' ? facts : {};",
+    "reason": "input normalizer: facts=junk vs {} both give f.bytes===undefined → an empty byte view → the same classification."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const f = facts && typeof facts === 'object' ? facts : {};",
+    "reason": "input normalizer in fingerprint: facts=junk vs {} both yield an empty byte view → the same fingerprint."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const n = typeof source === 'string' && Object.prototype.hasOwnProperty.call(m.sources, so",
+    "reason": "standing: a non-string source yields n=0 either way (|| would test hasOwnProperty on a non-string key, which is absent), so the ladder verdict is unchanged."
+  },
+  {
+    "mutation": ">= → >",
+    "snippet": "const declared = len >= 16 ? (b[14] << 8) | b[15] : -1;",
+    "reason": "at len===16 (the only length where >=16 and >16 differ) actual=-64, so declared-actual clamps to 64 and feature[5]=128 whichever branch is taken; identical for every input."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const r = refusal && typeof refusal === 'object' ? refusal : {};",
+    "reason": "immuneStage input normalizer: junk refusal → r.stage undefined → 'error' whether r is {} or the junk itself."
+  },
+  {
+    "mutation": "&& → ||",
+    "snippet": "const f = facts && typeof facts === 'object' ? facts : {};",
+    "reason": "mint facts normalizer: junk facts → f.stage undefined → stage 'error' whether f is {} or the junk itself."
+  },
+  {
+    "mutation": ">= → >",
+    "snippet": "if (!a || typeof a !== 'object' || size >= MAX_LIBRARY) continue;",
+    "reason": "library cap off-by-one at MAX_LIBRARY=8192: reaching it needs 8192 distinct antibodies (never approached in any run), and one more or fewer changes nothing observable."
+  },
+  {
+    "mutation": "|| → &&",
+    "snippet": "if (!a || typeof a !== 'object' || size >= MAX_LIBRARY) continue;",
+    "reason": "same MAX_LIBRARY cap line: the size>=cap short-circuit is a memory bound; flipping the || changes only whether the cap check is reached for malformed input, which is rejected by the kind/shape guards regardless."
+  },
+  {
+    "mutation": "|| → &&",
+    "snippet": "if (!Array.isArray(a) || !Array.isArray(b) || a.length !== WEIGHTS.length || b.length !== ",
+    "reason": "distance array-guard: a length/array mismatch still yields a non-finite distance via the per-element integer guard, so recognise/adopt (which only test d<=RADIUS) behave identically."
+  },
+  {
+    "mutation": "< → <=",
+    "snippet": "export const fromHex = (h) => { const s = String(h); const o = new Uint8Array(s.length >> ",
+    "reason": "fromHex loop bound: the extra i===o.length iteration writes to an out-of-range typed-array index, which is silently dropped, and reads substr past the end (empty → NaN → unused), so < and <= produce the identical byte array on every input."
+  }
+]

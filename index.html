@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Immune Exchange</title>
+<meta name="description" content="A centerless, signed antibody bus for gates. A zero-day caught by one gate immunises every subscriber — after each re-runs it on its own gate. Negative selection, no central trust. The page runs the exact kernel its tests and CI gate." />
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#121820; --panel2:#0e141b; --ink:#e7edf3; --dim:#8da2b5; --faint:#5a6b7d;
+    --line:#1e2a36; --accent:#45d0a8; --accent2:#6ab0ff; --bad:#ff6b6b; --warn:#ffcf5c;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;padding:0 16px;max-width:980px;margin:0 auto;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent2)}
+  h1{font-size:clamp(26px,6.5vw,42px);letter-spacing:.04em;margin:.6em 0 .1em;font-weight:800}
+  h1 .x{color:var(--accent)}
+  .tag{color:var(--dim);font-size:15px;margin:0 0 1.1em;max-width:64ch}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:2px 9px;margin-left:4px}
+  .live{color:var(--accent)}
+  .rule{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px;margin:0 0 20px;font-size:14.5px}
+  .rule b{color:var(--accent)}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px} @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);margin:0 0 12px;font-weight:700}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}
+  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 13px;font-size:13px;cursor:pointer;font-family:var(--sans);transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);color:#05231c;border-color:var(--accent);font-weight:700}
+  button.primary:hover{filter:brightness(1.08);color:#05231c}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .kv:last-child{border-bottom:0} .kv span:first-child{color:var(--dim)} .kv span:last-child{font-family:var(--mono);text-align:right}
+  .node{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--panel2)}
+  .node h3{margin:0 0 8px;font-size:13px;font-family:var(--mono);color:var(--accent2)}
+  .imm{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .imm b{color:var(--accent)}
+  .feed{font-family:var(--mono);font-size:11.5px;max-height:220px;overflow:auto}
+  .ev{padding:6px 0;border-bottom:1px solid var(--line);color:var(--dim)}
+  .ev:last-child{border-bottom:0}
+  .ev .ok{color:var(--accent)} .ev .no{color:var(--bad)} .ev .wn{color:var(--warn)}
+  .foot{color:var(--faint);font-size:12.5px;margin:28px 0;line-height:1.7} .foot a{color:var(--accent2)}
+  code{font-family:var(--mono);color:var(--dim)}
+</style>
+</head>
+<body>
+  <h1>IMMUNE<span class="x"> EXCHANGE</span></h1>
+  <p class="tag">A centerless, signed <b>antibody bus</b> for gates. A gate that refuses an attack signs a bundle of
+    the raw bytes and publishes it; every subscriber verifies it came from a pinned peer, then <b>re-runs the attack
+    on its own gate</b> before trusting a byte. A zero-day caught anywhere immunises everyone.
+    <span id="kstat" class="pill">booting kernel&hellip;</span></p>
+
+  <div class="rule">
+    The relay is <b>untrusted</b>: it can&rsquo;t forge a bundle, swap its antigens, or lift a signature — and even a
+    perfect bundle only gets a subscriber to <b>re-run</b> an attack, never to adopt on anyone&rsquo;s say-so. A packet
+    a gate would <b>admit</b> is never adopted (no false immunity). Same kernel the tests and CI gate &mdash; nothing mocked.
+  </div>
+
+  <div class="panel">
+    <h2>The bus</h2>
+    <div class="btns">
+      <button class="primary" id="zero">▶ Node 0 refuses a zero-day &amp; publishes it</button>
+      <button id="tamper">Tamper the bundle in transit</button>
+      <button id="valid">Publish a packet that&rsquo;s VALID on node 1</button>
+      <button id="unpin">Publish from an unpinned stranger</button>
+    </div>
+    <div class="feed" id="feed"><div class="ev">waiting&hellip; press the green button.</div></div>
+  </div>
+
+  <div class="grid two" style="margin-top:16px" id="nodes"></div>
+
+  <p class="foot">
+    Kernel-backed: this page imports <code>src/exchange · subscribe · gate · wire · antibody · immune</code> — the same
+    modules <code>witness-all.mjs</code> and <code>attack-kit/redteam.mjs --check</code> prove in CI. Ed25519 is the
+    browser&rsquo;s WebCrypto; every node&rsquo;s key is generated in <i>your</i> browser. Nothing calls home.<br>
+    Source, the contract, and how to subscribe your own gate: <a href="https://github.com/sjgant80-hub/immune-exchange">github.com/sjgant80-hub/immune-exchange</a>.
+    Gate vendored from <a href="https://github.com/sjgant80-hub/break-it">break-it</a>. GEP ladder: Gary W. Floyd (Lumiea Systems Research Division, ThunderStruck Service LLC, 2025).
+  </p>
+
+<script type="module">
+import { makeBundle, verifyBundle, toHex, fromHex } from './src/exchange.mjs';
+import { adoptAntigens } from './src/subscribe.mjs';
+import { decide } from './src/gate.mjs';
+import { immuneStage, mint, adopt, recognise, emptyLibrary, PERMANENT } from './src/antibody.mjs';
+import { classify } from './src/immune.mjs';
+import { encodeUnsigned, signedBytes, withSignature, SIG, OPS } from './src/wire.mjs';
+
+// compact sync sha256 (antibody hashes / recognise)
+const sha256 = (() => { const K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);const rotr=(x,n)=>(x>>>n)|(x<<(32-n));return (bytes)=>{const l=bytes.length,bl=((l+8>>6)+1)<<6,buf=new Uint8Array(bl);buf.set(bytes);buf[l]=0x80;const dv=new DataView(buf.buffer);dv.setUint32(bl-4,l*8);const H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);const w=new Uint32Array(64);for(let o=0;o<bl;o+=64){for(let i=0;i<16;i++)w[i]=dv.getUint32(o+i*4);for(let i=16;i<64;i++){const s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3),s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}let[a,b,c,d,e,f,g,h]=H;for(let i=0;i<64;i++){const S1=rotr(e,6)^rotr(e,11)^rotr(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[i]+w[i])|0,S0=rotr(a,2)^rotr(a,13)^rotr(a,22),mj=(a&b)^(a&c)^(b&c),t2=(S0+mj)|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;}let out='';for(let i=0;i<8;i++)out+=H[i].toString(16).padStart(8,'0');return out;};})();
+const $=id=>document.getElementById(id);
+const te=new TextEncoder();
+const importPub=(raw)=>crypto.subtle.importKey('raw',raw,{name:'Ed25519'},false,['verify']);
+const vcache=new Map();
+async function vk(msg,sig,pubRaw){ try{ return await crypto.subtle.verify('Ed25519',await importPub(pubRaw),sig,msg); }catch{ return false; } }
+
+const NODES=2; let legit, nodes=[], keyset='', feed=[];
+function log(html){ feed.unshift('<div class="ev">'+html+'</div>'); $('feed').innerHTML=feed.slice(0,40).join(''); }
+function renderNodes(){ $('nodes').innerHTML=nodes.map(n=>`<div class="node"><h3>gate ${n.i}${n.i===0?' (publisher)':' (subscriber)'}</h3>
+  <div class="imm">antibodies: <b>${Object.keys(n.library.exact).length}</b> exact / ${n.library.shapes.length} shape</div>
+  <div class="imm">pins: ${[...n.pins].map(p=>p.slice(0,8)).join(', ')||'—'}</div></div>`).join(''); }
+
+// the gate: decide() with the Ed25519 signature pre-verified by WebCrypto (sync verify returns the cached bool)
+async function gateDecide(node, bytes){
+  const key = legit.pubRaw;                       // every node's gate pins sender 1 = the legit client
+  let sigOk=false;
+  try{ const raw = (await import('./src/wire.mjs')).rawCheck(bytes); if(raw.ok){ const h=(await import('./src/wire.mjs')).headerOf(bytes,raw.n); if(bytes[5]===1) sigOk=await vk(signedBytes(bytes,raw.n),h.sig,key); } }catch{}
+  return decide(bytes, { keyFor:(id)=>id===1?key:null, verify:()=>sigOk, lastCounter:()=>0n });
+}
+// build a signed packet for sender 1 (optionally wrong signer / counter)
+async function packet({counter=1n,value='alice',signer}){
+  const u=encodeUnsigned({sender:1,counter,op:OPS.SET,key:'name',value}); const n=(u[14]<<8)|u[15];
+  const sig=new Uint8Array(await crypto.subtle.sign('Ed25519',signer,signedBytes(new Uint8Array([...u,...new Uint8Array(SIG)]),n)));
+  return withSignature(u,sig);
+}
+async function publishAndReceive(label, antigenBytes, mutate){
+  // node 0 refuses → bundles + signs with its bundle key → (relay, maybe mutated) → node 1 verifies + re-runs
+  const v0 = await gateDecide(nodes[0], antigenBytes);
+  const sig = new Uint8Array(await crypto.subtle.sign('Ed25519', nodes[0].bk.privateKey, te.encode((await import('./src/exchange.mjs')).bundleMaterial(nodes[0].pub, [toHex(antigenBytes)]))));
+  let bundle = { v:1, from:nodes[0].pub, antigens:[toHex(antigenBytes)], sig: toHex(sig) };
+  if (mutate) bundle = mutate(bundle);
+  log(`node 0 gate: <span class="${v0.admit?'wn':'ok'}">${v0.admit?'ADMITTED (valid — not an attack)':'refused at '+v0.stage}</span> · ${label}`);
+  const n1=nodes[1];
+  const ver = verifyBundle(bundle, (f)=>n1.pins.has(f), (m,s,fromHex)=>true);   // shape/pin/structure check (pure)
+  if(!ver.ok){ log(`node 1: bundle <span class="no">REJECTED</span> — ${ver.reason}`); return; }
+  // the signature must verify under the pinned peer's key (WebCrypto), independently of the pure structural check
+  const sigGood = await vk(te.encode((await import('./src/exchange.mjs')).bundleMaterial(bundle.from, bundle.antigens)), fromHex(bundle.sig), fromHex(bundle.from));
+  if(!sigGood){ log(`node 1: bundle <span class="no">REJECTED</span> — the signature does not verify`); return; }
+  // re-run every antigen on node 1's OWN gate before adopting (negative selection)
+  let adopted=0, blocked=0, recog=0;
+  for(const hex of ver.antigens){ const bytes=fromHex(hex); const v=await gateDecide(n1, bytes);
+    if(v.admit){ blocked++; continue; }
+    const stage=immuneStage(v); if(!PERMANENT.includes(stage)){ recog++; continue; }
+    const ab=mint(bytes,{hash:sha256(bytes),stage,keyset,family:classify(v,{bytes})});
+    const r=adopt(n1.library,[ab.exact,ab.shape].filter(Boolean)); n1.library=r.library; if(r.added) adopted++;
+  }
+  log(`node 1 re-ran it on its OWN gate → <span class="${adopted?'ok':blocked?'wn':'dim'}">adopted ${adopted}${blocked?', blocked '+blocked+' (valid here — autoimmunity refused)':''}${recog?', recognition '+recog:''}</span>`);
+  renderNodes();
+}
+
+$('zero').addEventListener('click', async ()=>{ const att=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']);
+  const f=await packet({counter:7n,value:'mallory',signer:att.privateKey});
+  await publishAndReceive('a forged packet (unknown key)', f);
+  const known=recognise(nodes[1].library, sha256(f), null, keyset).drop;
+  log(known?`node 1 now <span class="ok">recognises that zero-day ON SIGHT</span> — immune to an attack it never saw`:'');
+});
+$('valid').addEventListener('click', async ()=>{ const f=await packet({counter:1n,value:'alice',signer:legit.priv}); await publishAndReceive('a VALID packet (should NOT be adopted)', f); });
+$('tamper').addEventListener('click', async ()=>{ const att=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']); const f=await packet({counter:7n,value:'evil',signer:att.privateKey});
+  await publishAndReceive('a forgery, but the relay swaps the antigen list after signing', f, (b)=>({...b, antigens:[b.antigens[0].slice(0,-2)+'00']})); });
+$('unpin').addEventListener('click', async ()=>{ const att=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']); const f=await packet({counter:7n,value:'x',signer:att.privateKey});
+  const stray=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']); const strayPub=toHex(new Uint8Array(await crypto.subtle.exportKey('raw',stray.publicKey)));
+  const sig=new Uint8Array(await crypto.subtle.sign('Ed25519',stray.privateKey,te.encode((await import('./src/exchange.mjs')).bundleMaterial(strayPub,[toHex(f)]))));
+  const bundle={v:1,from:strayPub,antigens:[toHex(f)],sig:toHex(sig)};
+  const ver=verifyBundle(bundle,(x)=>nodes[1].pins.has(x),()=>true);
+  log(`node 1: a stranger&rsquo;s bundle → <span class="no">${ver.ok?'accepted?!':'REJECTED — '+ver.reason}</span>`); });
+
+(async function boot(){
+  try{
+    const lk=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']);
+    legit={ priv:lk.privateKey, pubRaw:new Uint8Array(await crypto.subtle.exportKey('raw',lk.publicKey)) };
+    legit.pubHex=toHex(legit.pubRaw); keyset=sha256(te.encode(JSON.stringify([[1,legit.pubHex]])));
+    for(let i=0;i<NODES;i++){ const bk=await crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']);
+      nodes.push({ i, bk, pub:toHex(new Uint8Array(await crypto.subtle.exportKey('raw',bk.publicKey))), library:emptyLibrary(), pins:new Set() }); }
+    nodes[1].pins.add(nodes[0].pub); nodes[0].pins.add(nodes[1].pub);   // each pins the other
+    $('kstat').textContent='kernel live'; $('kstat').className='pill live'; renderNodes();
+  }catch(e){ $('kstat').textContent='this browser lacks WebCrypto Ed25519 — try a recent Chromium'; $('kstat').style.color='var(--bad)';
+    log('<span class="no">the kernels loaded but this browser can\'t do Ed25519 in WebCrypto</span> — the code + full proof run under Node (see the repo).'); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+IMMUNE EXCHANGE — credits and provenance
+
+The gate, the antibody library and the immune memory in src/ (wire.mjs, gate.mjs, antibody.mjs,
+immune.mjs, keys.mjs) are VENDORED from sjgant80-hub/break-it, where they are witness-CLEAN. They are
+re-gated here (witness-all.mjs) so this repository proves its own copies rather than pointing at another.
+
+The GEP ladder that the break-it immune/sentinel lineage uses is the work of:
+  Gary W. Floyd — Lumiea Systems Research Division, ThunderStruck Service LLC,
+  "GEP-Based Security: Behavioral Entropy Signatures for Cybersecurity and DevOps" (2025).
+
+The compression / codec lineage the estate builds on (the Konomi codec, the LIGHT work) is the work of
+Thomas Frumkin (Konomi). This repository ships no codec; the credit is recorded because this build
+descends from that body of work.
+
+The exchange itself — the signed-bundle protocol (exchange.mjs) and the negative-selection adopt
+(subscribe.mjs) — is original to this build and released under the MIT License (see LICENSE).

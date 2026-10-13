@@ -1,0 +1,13 @@
+# Immune Exchange
+
+> A centerless, signed antibody bus for gates. A gate that refuses an attack signs a bundle of the raw bytes and publishes it; every subscriber verifies the bundle came from a pinned peer, then RE-RUNS the attack through its own gate before adopting. A zero-day caught anywhere immunises everyone, and no bundle can turn a gate against a packet it would admit (negative selection). The relay is untrusted — bundles are signed over domain+from+the exact antigen list, so it cannot forge, swap antigens, or lift a signature.
+
+Live: https://sjgant80-hub.github.io/immune-exchange/
+
+## Proof (re-runnable)
+- attack-kit/redteam.mjs --check: 9 cases across two gates, byte-identical receipt — a zero-day propagates; nothing valid-here/unsigned/unpinned/tampered/sig-lifted is adopted.
+- witness-all.mjs: mutation + fuzz gate over exchange, subscribe, and the vendored break-it gate kernels.
+- test/*.test.mjs: unit + never-throw suites.
+
+## Credits
+GEP ladder: Gary W. Floyd (Lumiea Systems Research Division, ThunderStruck Service LLC, 2025). Gate vendored from sjgant80-hub/break-it. Codec lineage: Thomas Frumkin / Konomi. MIT.

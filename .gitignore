@@ -1,0 +1,6 @@
+secrets/
+data/
+*.witnessbak
+*.lock
+node_modules/
+*.log
