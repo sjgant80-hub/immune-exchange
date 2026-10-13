@@ -28,11 +28,28 @@ gate A refuses an attack ─ bundles + signs it ─▶ (untrusted relay) ─▶ 
 - **Recognition, not over-commitment.** An attack refused at a stage that could *later* become valid
   (out-of-order) earns recognition, never a permanent antibody.
 
+## First publisher: break-it
+
+[break-it](https://github.com/sjgant80-hub/break-it) already writes every refused attack to a hash-chained
+journal with the raw bytes — so it needs **no change** to publish: its journal *is* the feed. `src/publisher.mjs`
+selects the novel, permanent-on-any-gate antigens (bad size/magic/schema, unknown sender, forged signature — never
+a node-specific replay), and `tools/publish.mjs` bundles + signs + POSTs them to a hub. Proven on a **real break-it
+journal** (`test/fixtures/break-it-journal.jsonl`, captured from a live node under attack): its three attacks
+immunise a fresh gate that never saw them — `node attack-kit/first-publisher.mjs --check` (byte-identical receipt,
+run in CI).
+
+```bash
+node tools/publish.mjs <break-it-node>/data/node-1/journal.jsonl http://127.0.0.1:8899   # break-it → the bus
+```
+
 ## Run it
 
 ```bash
 node run.mjs --nodes 3    # 3 gates on one bus: a zero-day hits node 0, the others go immune after re-running it
 ```
+
+The hub (`src/hub.mjs`) is an untrusted relay — `POST /publish`, `GET /feed`. It never verifies a signature or
+re-runs an antigen; it can drop or reorder bundles but cannot forge one or make any gate adopt anything.
 
 ## Subscribe your gate (the whole contract)
 

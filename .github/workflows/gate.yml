@@ -11,5 +11,7 @@ jobs:
         run: node --test test/*.test.mjs
       - name: the exchange red-team re-runs and must reproduce its receipt byte-for-byte
         run: node attack-kit/redteam.mjs --check
+      - name: break-it (the first publisher) — its real journal immunises a fresh gate, byte-identical receipt
+        run: node attack-kit/first-publisher.mjs --check
       - name: mutation + fuzz gate over every decision kernel (no unreviewed survivors)
         run: node witness-all.mjs

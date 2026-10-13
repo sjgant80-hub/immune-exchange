@@ -7,6 +7,7 @@ import { decide, isAdmitted } from '../src/gate.mjs';
 import * as immune from '../src/immune.mjs';
 import * as ab from '../src/antibody.mjs';
 import { verifyBundle, bundleMaterial, toHex, fromHex } from '../src/exchange.mjs';
+import { antigensFromJournal } from '../src/publisher.mjs';
 
 const circular = {}; circular.self = circular;
 const toxic = { get stage() { throw new Error('toxic'); }, get length() { throw new Error('toxic'); } };
@@ -47,3 +48,4 @@ neverThrows('verifyBundle(isPinned junk)', (x) => verifyBundle({ v: 1, from: 'a'
 neverThrows('bundleMaterial', (x) => bundleMaterial(x, x));
 neverThrows('fromHex', fromHex);
 neverThrows('toHex', (x) => toHex(x instanceof Uint8Array ? x : new Uint8Array(0)));
+neverThrows('antigensFromJournal', antigensFromJournal);

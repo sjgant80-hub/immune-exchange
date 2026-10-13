@@ -4,6 +4,7 @@
 //
 // Gated here:
 //   exchange  — the signed-bundle protocol (the antibody bus): who may publish, what binds a signature
+//   publisher — break-it is the first publisher: which journal antigens are offered to the bus
 //   subscribe — NEGATIVE SELECTION: re-run every antigen on THIS node's own gate before adopting (no false immunity)
 //   wire · gate · antibody · immune — vendored from sjgant80-hub/break-it (witness-CLEAN there); re-gated here so
 //     this repo proves its OWN copies rather than pointing at another repo ("never trust, re-run").
@@ -18,6 +19,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const PAIRS = [
   ['src/exchange.mjs', ['test/exchange.test.mjs', 'test/fuzz.test.mjs']],
   ['src/subscribe.mjs', ['test/subscribe.test.mjs', 'test/fuzz.test.mjs']],
+  ['src/publisher.mjs', ['test/publisher.test.mjs', 'test/fuzz.test.mjs']],
   ['src/wire.mjs', ['test/wire.test.mjs', 'test/fuzz.test.mjs']],
   ['src/gate.mjs', ['test/gate.test.mjs', 'test/fuzz.test.mjs']],
   ['src/antibody.mjs', ['test/antibody.test.mjs', 'test/fuzz.test.mjs']],
